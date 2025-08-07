@@ -1,0 +1,16 @@
+# 代理列表
+
+# MyLista
+DOMAIN-SUFFIX,dash.cloudflare.com
+DOMAIN-SUFFIX,zenodo.org
+DOMAIN-SUFFIX,lirmm.fr
+DOMAIN-SUFFIX,msdl.microsoft.com
+DOMAIN-SUFFIX,immortalwrt.org
+DOMAIN-SUFFIX,kaggle.com
+DOMAIN-SUFFIX,kaggleusercontent.com
+DOMAIN-SUFFIX,kaggle.net
+DOMAIN-SUFFIX,sagernet.org
+DOMAIN-SUFFIX,grok.com
+DOMAIN-SUFFIX,x.com
+DOMAIN-SUFFIX,huggingface.co
+DOMAIN-SUFFIX,dropbox.com
