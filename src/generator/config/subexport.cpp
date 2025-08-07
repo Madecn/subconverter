@@ -508,7 +508,7 @@ proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode, const ProxyGroupCo
             case ProxyType::Hysteria2:
                 singleproxy["type"] = "hysteria2";
                 singleproxy["password"] = x.Password;
-                singleproxy["auth"] = x.Password;
+                // 删除auth字段
                 if (!x.PublicKey.empty()) {
                     singleproxy["ca-str"] = x.PublicKey;
                 }
@@ -519,16 +519,21 @@ proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode, const ProxyGroupCo
                     singleproxy["up"] = x.UpMbps;
                 if (!x.DownMbps.empty())
                     singleproxy["down"] = x.DownMbps;
-                if (!scv.is_undef())
-                    singleproxy["skip-cert-verify"] = scv.get();
+                // 修改skip-cert-verify为true
+                singleproxy["skip-cert-verify"] = true;
                 if (!x.Alpn.empty())
                     singleproxy["alpn"].push_back(x.Alpn);
                 if (!x.OBFSParam.empty())
                     singleproxy["obfs"] = x.OBFSParam;
                 if (!x.OBFSPassword.empty())
                     singleproxy["obfs-password"] = x.OBFSPassword;
-                if (!x.Ports.empty())
+                if (!x.Ports.empty()) {
                     singleproxy["ports"] = x.Ports;
+                    // 增加mport字段，值为ports的值
+                    singleproxy["mport"] = x.Ports;
+                }
+                // 增加udp字段，值为true
+                singleproxy["udp"] = true;
                 break;
             case ProxyType::TUIC:
                 singleproxy["type"] = "tuic";
@@ -969,7 +974,7 @@ std::string proxyToSurge(std::vector<Proxy> &nodes, const std::string &base_conf
                 if (surge_ver < 4 && surge_ver != -3)
                     continue;
                 proxy = "vmess, " + hostname + ", " + port + ", username=" + id + ", tls=" +
-                        (tlssecure ? "true" : "false") + ", vmess-aead=" + (x.AlterId == 0 ? "true" : "false");
+                        (tlssecure ? "true" : "false");
                 if (tlssecure && !tls13.is_undef())
                     proxy += ", tls13=" + std::string(tls13 ? "true" : "false");
                 switch (hash_(transproto)) {
@@ -1083,7 +1088,7 @@ std::string proxyToSurge(std::vector<Proxy> &nodes, const std::string &base_conf
                 }
 
                 if (!scv.is_undef())
-                    proxy += ",skip-cert-verify=" + std::string(scv.get() ? "true" : "false");
+                    proxy += ",skip-cert-verify=true";
                 if (!x.Fingerprint.empty())
                     proxy += ",server-cert-fingerprint-sha256=" + x.Fingerprint;
                 if (!x.ServerName.empty())
@@ -2783,6 +2788,7 @@ proxyToSingBox(std::vector<Proxy> &nodes, rapidjson::Document &json,
             case ProxyType::Hysteria2: {
                 addSingBoxCommonMembers(proxy, x, "hysteria2", allocator);
                 proxy.AddMember("password", rapidjson::StringRef(x.Password.c_str()), allocator);
+                // 删除auth字段
                 if (!x.TLSSecure) {
                     rapidjson::Value tls(rapidjson::kObjectType);
                     tls.AddMember("enabled", true, allocator);
@@ -2824,6 +2830,12 @@ proxyToSingBox(std::vector<Proxy> &nodes, rapidjson::Document &json,
                     }
                     proxy.AddMember("obfs", obfs, allocator);
                 }
+                // 增加mport字段，值为ports的值
+                if (!x.Ports.empty()) {
+                    proxy.AddMember("mport", rapidjson::StringRef(x.Ports.c_str()), allocator);
+                }
+                // 增加udp字段，值为true
+                proxy.AddMember("udp", true, allocator);
                 break;
             }
             case ProxyType::TUIC: {

@@ -1495,8 +1495,6 @@ void explodeClash(Node yamlnode, std::vector<Proxy> &nodes) {
             case "hysteria2"_hash:
                 group = HYSTERIA2_DEFAULT_GROUP;
                 singleproxy["password"] >>= password;
-                if (password.empty())
-                    singleproxy["auth"] >>= password;
                 if (singleproxy["up"].IsDefined()) {
                     singleproxy["up"] >>= up;
                     if (up.empty()) {
