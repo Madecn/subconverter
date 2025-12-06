@@ -519,7 +519,10 @@ proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode, const ProxyGroupCo
                     singleproxy["up"] = x.UpMbps;
                 if (!x.DownMbps.empty())
                     singleproxy["down"] = x.DownMbps;
-                if (!scv.is_undef())
+                // 优先使用URL参数的scv，如果未定义则使用节点的AllowInsecure
+                if (!ext.skip_cert_verify.is_undef())
+                    singleproxy["skip-cert-verify"] = ext.skip_cert_verify.get();
+                else if (!scv.is_undef())
                     singleproxy["skip-cert-verify"] = scv.get();
                 if (!x.Alpn.empty())
                     singleproxy["alpn"].push_back(x.Alpn);
