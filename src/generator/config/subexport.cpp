@@ -519,8 +519,8 @@ proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode, const ProxyGroupCo
                     singleproxy["up"] = x.UpMbps;
                 if (!x.DownMbps.empty())
                     singleproxy["down"] = x.DownMbps;
-                // 修改skip-cert-verify为true
-                // singleproxy["skip-cert-verify"] = true;
+                if (!scv.is_undef())
+                    singleproxy["skip-cert-verify"] = scv.get();
                 if (!x.Alpn.empty())
                     singleproxy["alpn"].push_back(x.Alpn);
                 if (!x.OBFSParam.empty())
@@ -1088,7 +1088,7 @@ std::string proxyToSurge(std::vector<Proxy> &nodes, const std::string &base_conf
                 }
 
                 if (!scv.is_undef())
-                    proxy += ",skip-cert-verify=true";
+                    proxy += ",skip-cert-verify=" + std::string(scv.get() ? "true" : "false");
                 if (!x.Fingerprint.empty())
                     proxy += ",server-cert-fingerprint-sha256=" + x.Fingerprint;
                 if (!x.ServerName.empty())
