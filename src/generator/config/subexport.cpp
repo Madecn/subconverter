@@ -298,10 +298,11 @@ proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode, const ProxyGroupCo
                         singleproxy["plugin-opts"]["tls"] = pluginopts.find("tls") != std::string::npos;
                         singleproxy["plugin-opts"]["mux"] = pluginopts.find("mux") != std::string::npos;
                         // 优先使用URL参数的scv
-                        if (!ext.skip_cert_verify.is_undef())
+                        if (!ext.skip_cert_verify.is_undef()) {
                             singleproxy["plugin-opts"]["skip-cert-verify"] = ext.skip_cert_verify.get();
-                        else if (!scv.is_undef())
-                            singleproxy["plugin-opts"]["skip-cert-verify"] = scv.get();
+                        } else if (!x.AllowInsecure.is_undef()) {
+                            singleproxy["plugin-opts"]["skip-cert-verify"] = x.AllowInsecure.get();
+                        }
                         break;
                 }
                 break;
@@ -318,10 +319,11 @@ proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode, const ProxyGroupCo
                 } else if (!x.Alpn.empty())
                     singleproxy["alpn"].push_back(x.Alpn);
                 // 优先使用URL参数的scv
-                if (!ext.skip_cert_verify.is_undef())
+                if (!ext.skip_cert_verify.is_undef()) {
                     singleproxy["skip-cert-verify"] = ext.skip_cert_verify.get();
-                else if (!scv.is_undef())
-                    singleproxy["skip-cert-verify"] = scv.get();
+                } else if (!x.AllowInsecure.is_undef()) {
+                    singleproxy["skip-cert-verify"] = x.AllowInsecure.get();
+                }
                 if (!x.ServerName.empty())
                     singleproxy["servername"] = x.ServerName;
                 switch (hash_(x.TransferProtocol)) {
@@ -406,10 +408,11 @@ proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode, const ProxyGroupCo
                         singleproxy["password"].SetTag("str");
                 }
                 // 优先使用URL参数的scv
-                if (!ext.skip_cert_verify.is_undef())
+                if (!ext.skip_cert_verify.is_undef()) {
                     singleproxy["skip-cert-verify"] = ext.skip_cert_verify.get();
-                else if (!scv.is_undef())
-                    singleproxy["skip-cert-verify"] = scv.get();
+                } else if (!x.AllowInsecure.is_undef()) {
+                    singleproxy["skip-cert-verify"] = x.AllowInsecure.get();
+                }
                 break;
             case ProxyType::HTTP:
             case ProxyType::HTTPS:
@@ -423,10 +426,11 @@ proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode, const ProxyGroupCo
                 }
                 singleproxy["tls"] = x.TLSSecure;
                 // 优先使用URL参数的scv
-                if (!ext.skip_cert_verify.is_undef())
+                if (!ext.skip_cert_verify.is_undef()) {
                     singleproxy["skip-cert-verify"] = ext.skip_cert_verify.get();
-                else if (!scv.is_undef())
-                    singleproxy["skip-cert-verify"] = scv.get();
+                } else if (!x.AllowInsecure.is_undef()) {
+                    singleproxy["skip-cert-verify"] = x.AllowInsecure.get();
+                }
                 break;
             case ProxyType::Trojan:
                 singleproxy["type"] = "trojan";
@@ -446,10 +450,11 @@ proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode, const ProxyGroupCo
                     singleproxy["password"].SetTag("str");
                 }
                 // 优先使用URL参数的scv
-                if (!ext.skip_cert_verify.is_undef())
+                if (!ext.skip_cert_verify.is_undef()) {
                     singleproxy["skip-cert-verify"] = ext.skip_cert_verify.get();
-                else if (!scv.is_undef())
-                    singleproxy["skip-cert-verify"] = scv.get();
+                } else if (!x.AllowInsecure.is_undef()) {
+                    singleproxy["skip-cert-verify"] = x.AllowInsecure.get();
+                }
                 switch (hash_(x.TransferProtocol)) {
                     case "tcp"_hash:
                         break;
@@ -512,12 +517,13 @@ proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode, const ProxyGroupCo
                 if (!x.ServerName.empty())
                     singleproxy["sni"] = x.ServerName;
                 // 优先使用URL参数的scv，如果未定义则使用节点的AllowInsecure
-                if (!ext.skip_cert_verify.is_undef())
+                if (!ext.skip_cert_verify.is_undef()) {
                     singleproxy["skip-cert-verify"] = ext.skip_cert_verify.get();
-                else if (x.Insecure == "1")
+                } else if (x.Insecure == "1") {
                     singleproxy["skip-cert-verify"] = true;
-                else if (!scv.is_undef())
-                    singleproxy["skip-cert-verify"] = scv.get();
+                } else if (!x.AllowInsecure.is_undef()) {
+                    singleproxy["skip-cert-verify"] = x.AllowInsecure.get();
+                }
                 if (!x.Alpn.empty())
                     singleproxy["alpn"].push_back(x.Alpn);
                 if (!x.OBFSParam.empty())
@@ -538,10 +544,14 @@ proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode, const ProxyGroupCo
                 if (!x.DownMbps.empty())
                     singleproxy["down"] = x.DownMbps;
                 // 优先使用URL参数的scv，如果未定义则使用节点的AllowInsecure
-                if (!ext.skip_cert_verify.is_undef())
+                //FIXED: Ensure URL parameter takes absolute priority
+                if (!ext.skip_cert_verify.is_undef()) {
+                    // URL parameter is explicitly set, use it
                     singleproxy["skip-cert-verify"] = ext.skip_cert_verify.get();
-                else if (!scv.is_undef())
-                    singleproxy["skip-cert-verify"] = scv.get();
+                } else if (!x.AllowInsecure.is_undef()) {
+                    // URL parameter not set, use node's AllowInsecure if available
+                    singleproxy["skip-cert-verify"] = x.AllowInsecure.get();
+                }
                 if (!x.Alpn.empty())
                     singleproxy["alpn"].push_back(x.Alpn);
                 if (!x.OBFSParam.empty())
@@ -571,10 +581,11 @@ proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode, const ProxyGroupCo
                     singleproxy["sni"] = x.ServerName;
                 }
                 // 优先使用URL参数的scv
-                if (!ext.skip_cert_verify.is_undef())
+                if (!ext.skip_cert_verify.is_undef()) {
                     singleproxy["skip-cert-verify"] = ext.skip_cert_verify.get();
-                else if (!scv.is_undef())
-                    singleproxy["skip-cert-verify"] = scv.get();
+                } else if (!x.AllowInsecure.is_undef()) {
+                    singleproxy["skip-cert-verify"] = x.AllowInsecure.get();
+                }
                 if (!x.Alpn.empty())
                     singleproxy["alpn"].push_back(x.Alpn);
                 singleproxy["disable-sni"] = x.DisableSni.get();
@@ -604,10 +615,11 @@ proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode, const ProxyGroupCo
                     singleproxy["sni"] = x.SNI;
                 }
                 // 优先使用URL参数的scv
-                if (!ext.skip_cert_verify.is_undef())
+                if (!ext.skip_cert_verify.is_undef()) {
                     singleproxy["skip-cert-verify"] = ext.skip_cert_verify.get();
-                else if (!scv.is_undef())
-                    singleproxy["skip-cert-verify"] = scv.get();
+                } else if (!x.AllowInsecure.is_undef()) {
+                    singleproxy["skip-cert-verify"] = x.AllowInsecure.get();
+                }
                 if (!x.AlpnList.empty()) {
                     for (auto &item: x.AlpnList) {
                         singleproxy["alpn"].push_back(item);
@@ -652,10 +664,11 @@ proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode, const ProxyGroupCo
                 if (!x.Flow.empty())
                     singleproxy["flow"] = x.Flow;
                 // 优先使用URL参数的scv
-                if (!ext.skip_cert_verify.is_undef())
+                if (!ext.skip_cert_verify.is_undef()) {
                     singleproxy["skip-cert-verify"] = ext.skip_cert_verify.get();
-                else if (!scv.is_undef())
-                    singleproxy["skip-cert-verify"] = scv.get();
+                } else if (!x.AllowInsecure.is_undef()) {
+                    singleproxy["skip-cert-verify"] = x.AllowInsecure.get();
+                }
                 if (!x.PublicKey.empty()) {
                     singleproxy["reality-opts"]["public-key"] = x.PublicKey;
                 }
