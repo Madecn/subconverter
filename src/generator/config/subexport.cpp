@@ -520,7 +520,7 @@ proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode, const ProxyGroupCo
                 if (!x.DownMbps.empty())
                     singleproxy["down"] = x.DownMbps;
                 // 修改skip-cert-verify为true
-                singleproxy["skip-cert-verify"] = true;
+                // singleproxy["skip-cert-verify"] = true;
                 if (!x.Alpn.empty())
                     singleproxy["alpn"].push_back(x.Alpn);
                 if (!x.OBFSParam.empty())
