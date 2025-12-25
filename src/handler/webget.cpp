@@ -319,13 +319,22 @@ std::string webGet(const std::string &url, const std::string &proxy, unsigned in
             time_t mtime = result.st_mtime, now = time(nullptr); // get cache modified time and current time
             if(difftime(now, mtime) <= cache_ttl) // within TTL
             {
-                writeLog(0, "CACHE HIT: '" + url + "', using local cache.");
                 //guarded_mutex guard(cache_rw_lock);
                 cache_rw_lock.readLock();
-                defer(cache_rw_lock.readUnlock();)
-                if(response_headers)
-                    *response_headers = fileGet(path_header, true);
-                return fileGet(path, true);
+                std::string cached_content = fileGet(path, true);
+                cache_rw_lock.readUnlock();
+                
+                if(!cached_content.empty()) // only serve non-empty cache
+                {
+                    writeLog(0, "CACHE HIT: '" + url + "', using local cache.");
+                    if(response_headers)
+                        *response_headers = fileGet(path_header, true);
+                    return cached_content;
+                }
+                else
+                {
+                    writeLog(0, "CACHE INVALID: '" + url + "', cached content is empty, refetching.");
+                }
             }
             writeLog(0, "CACHE MISS: '" + url + "', TTL timeout, creating new cache."); // out of TTL
         }
