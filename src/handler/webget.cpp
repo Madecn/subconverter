@@ -230,7 +230,7 @@ static int curlGet(const FetchArgument &argument, FetchResult &result)
         break;
     }
 
-    unsigned int fail_count = 0, max_fails = 1;
+    unsigned int fail_count = 0, max_fails = 3;
     while(true)
     {
         retVal = curl_easy_perform(curl_handle);
@@ -333,7 +333,7 @@ std::string webGet(const std::string &url, const std::string &proxy, unsigned in
             writeLog(0, "CACHE NOT EXIST: '" + url + "', creating new cache.");
         //content = curlGet(url, proxy, response_headers, return_code); // try to fetch data
         curlGet(argument, fetch_res);
-        if(return_code == 200) // success, save new cache
+        if(return_code == 200 && !content.empty()) // success and content not empty, save new cache
         {
             //guarded_mutex guard(cache_rw_lock);
             cache_rw_lock.writeLock();
