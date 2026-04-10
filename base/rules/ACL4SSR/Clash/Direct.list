@@ -6,13 +6,6 @@ DOMAIN-SUFFIX,quickconnect.to
 DOMAIN-SUFFIX,synology.com
 DOMAIN-SUFFIX,synologyupdate.com
 DOMAIN-SUFFIX,synologydownload.com
-DOMAIN-SUFFIX,bing.com
-DOMAIN-SUFFIX,bing123.com
-DOMAIN-SUFFIX,microsoft.com
-DOMAIN-SUFFIX,s-microsoft.com
-DOMAIN-SUFFIX,windows.com
-DOMAIN-SUFFIX,xboxlive.com
-DOMAIN-SUFFIX,xboxservices.com
 DOMAIN-SUFFIX,alibaba.com
 DOMAIN-SUFFIX,akadns.net
 DOMAIN-SUFFIX,azurefd.net
@@ -22,3 +15,10 @@ DOMAIN-SUFFIX,t-msedge.net
 DOMAIN-SUFFIX,trafficmanager.net
 DOMAIN-SUFFIX,alibabadns.com
 DOMAIN-SUFFIX,goofish.com
+DOMAIN-SUFFIX,g.alicdn.com
+DOMAIN-SUFFIX,o.alicdn.com
+DOMAIN-SUFFIX,gw.alicdn.com
+DOMAIN-SUFFIX,img.alicdn.com
+DOMAIN-SUFFIX,log.mmstat.com
+DOMAIN-SUFFIX,gm.mmstat.com
+DOMAIN-SUFFIX,fourier.taobao.com
