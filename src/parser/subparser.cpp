@@ -2073,10 +2073,17 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                         case "tfo"_hash:
                             tfo = itemVal;
                             break;
+                        case "shadow-tls-sni"_hash:
+                        case "shadow-tls-password"_hash:
+                        case "shadow-tls-version"_hash:
+                            port = "0";
+                            break;
                         default:
                             continue;
                     }
                 }
+                if (port == "0")
+                    continue;
                 if (!plugin.empty()) {
                     pluginopts = "obfs=" + pluginopts_mode;
                     pluginopts += pluginopts_host.empty() ? "" : ";obfs-host=" + pluginopts_host;
@@ -2120,10 +2127,17 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                         case "tfo"_hash:
                             tfo = itemVal;
                             break;
+                        case "shadow-tls-sni"_hash:
+                        case "shadow-tls-password"_hash:
+                        case "shadow-tls-version"_hash:
+                            port = "0";
+                            break;
                         default:
                             continue;
                     }
                 }
+                if (port == "0")
+                    continue;
                 if (!plugin.empty()) {
                     pluginopts = "obfs=" + pluginopts_mode;
                     pluginopts += pluginopts_host.empty() ? "" : ";obfs-host=" + pluginopts_host;
@@ -2394,6 +2408,43 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                 wireguardConstruct(node, WG_DEFAULT_GROUP, remarks, "", "0", ip, ipv6, private_key, "", "", dns_servers,
                                    mtu, keepalive, test_url, "", udp, "");
                 parsePeers(node, peer);
+                break;
+            case "anytls"_hash: //Surge style anytls proxy
+                server = trim(configs[1]);
+                port = trim(configs[2]);
+                if (port == "0")
+                    continue;
+
+                for (i = 3; i < configs.size(); i++) {
+                    vArray = split(configs[i], "=");
+                    if (vArray.size() != 2)
+                        continue;
+                    itemName = trim(vArray[0]);
+                    itemVal = trim(vArray[1]);
+                    switch (hash_(itemName)) {
+                        case "password"_hash:
+                            password = itemVal;
+                            break;
+                        case "sni"_hash:
+                            sni = itemVal;
+                            break;
+                        case "skip-cert-verify"_hash:
+                            scv = itemVal;
+                            break;
+                        case "fingerprint"_hash:
+                            fp = itemVal;
+                            break;
+                        case "tls13"_hash:
+                            tls13 = itemVal;
+                            break;
+                        default:
+                            continue;
+                    }
+                }
+
+                anyTlSConstruct(node, ANYTLS_DEFAULT_GROUP, remarks, port, password, server,
+                                std::vector<std::string>{}, fp, sni,
+                                udp, tribool(), scv, tribool(), "", 30, 30, 0);
                 break;
             default:
                 switch (hash_(remarks)) {
