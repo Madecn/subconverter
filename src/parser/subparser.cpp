@@ -36,6 +36,30 @@ string_array ssr_ciphers = {
 std::map<std::string, std::string> parsedMD5;
 std::string modSSMD5 = "f7653207090ce3389115e9c88541afe0";
 
+const string_array xhttp_option_keys = {
+    "mode",
+    "no-grpc-header",
+    "no-sse-header",
+    "x-padding-bytes",
+    "x-padding-obfs-mode",
+    "x-padding-key",
+    "x-padding-header",
+    "x-padding-placement",
+    "x-padding-method",
+    "uplink-http-method",
+    "session-placement",
+    "session-key",
+    "seq-placement",
+    "seq-key",
+    "uplink-data-placement",
+    "uplink-data-key",
+    "uplink-chunk-size",
+    "sc-max-each-post-bytes",
+    "sc-min-posts-interval-ms",
+    "sc-max-buffered-posts",
+    "sc-stream-up-server-secs"
+};
+
 //remake from speedtestutil
 std::string removeBrackets(const std::string& input) {
     std::string result = input;
@@ -1462,6 +1486,23 @@ void explodeClash(Node yamlnode, std::vector<Proxy> &nodes) {
                         singleproxy["h2-opts"]["host"][0] >>= host;
                         edge.clear();
                         break;
+                    case "xhttp"_hash:
+                        path = singleproxy["xhttp-opts"]["path"].IsDefined()
+                                   ? safe_as<std::string>(singleproxy["xhttp-opts"]["path"])
+                                   : "/";
+                        singleproxy["xhttp-opts"]["host"] >>= host;
+                        if (host.empty()) {
+                            singleproxy["xhttp-opts"]["headers"]["Host"] >>= host;
+                        }
+                        singleproxy["xhttp-opts"]["headers"]["Edge"] >>= edge;
+                        if (singleproxy["xhttp-opts"].IsMap()) {
+                            for (const auto &key: xhttp_option_keys) {
+                                if (singleproxy["xhttp-opts"][key].IsScalar()) {
+                                    node.XHTTPOptions[key] = safe_as<std::string>(singleproxy["xhttp-opts"][key]);
+                                }
+                            }
+                        }
+                        break;
                     case "grpc"_hash:
                         singleproxy["servername"] >>= host;
                         singleproxy["grpc-opts"]["grpc-service-name"] >>= path;
@@ -1830,12 +1871,6 @@ void explodeStdVless(std::string vless, Proxy &node) {
             host = getUrlArg(addition, strFind(addition, "sni") ? "sni" : "host");
             path = getUrlArg(addition, "path");
             break;
-        case "xhttp"_hash: // 新增对 type=xhttp 的支持
-            net = "h2"; // 视为 h2/http2 传输
-            type = getUrlArg(addition, "headerType");
-            host = getUrlArg(addition, strFind(addition, "sni") ? "sni" : "host");
-            path = getUrlArg(addition, "path");
-            break;
         case "grpc"_hash:
             host = getUrlArg(addition, "sni");
             path = getUrlArg(addition, "serviceName");
@@ -1846,10 +1881,23 @@ void explodeStdVless(std::string vless, Proxy &node) {
             host = getUrlArg(addition, strFind(addition, "sni") ? "sni" : "quicSecurity");
             path = getUrlArg(addition, "key");
             break;
+        case "xhttp"_hash:
+            type = getUrlArg(addition, "headerType");
+            host = getUrlArg(addition, strFind(addition, "sni") ? "sni" : "host");
+            path = getUrlArg(addition, "path");
+            for (const auto &key: xhttp_option_keys) {
+                std::string value = getUrlArg(addition, key);
+                if (value.empty()) {
+                    value = getUrlArg(addition, replaceAllDistinct(key, "-", "_"));
+                }
+                if (!value.empty()) {
+                    node.XHTTPOptions[key] = value;
+                }
+            }
+            break;
         default:
             return;
     }
-
     if (remarks.empty())
         remarks = add + ":" + port;
     sni = getUrlArg(addition, "sni");
