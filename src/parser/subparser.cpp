@@ -73,6 +73,20 @@ std::string removeBrackets(const std::string& input) {
 
     return result;
 }
+
+void extractRemark(std::string &link, std::string &remark) {
+    string_size pos = link.rfind("#");
+    if (pos != link.npos) {
+        remark = urlDecode(link.substr(pos + 1));
+        link.erase(pos);
+    }
+
+    pos = link.find("#");
+    if (pos != link.npos) {
+        link.erase(pos);
+    }
+}
+
 void commonConstruct(Proxy &node, ProxyType type, const std::string &group, const std::string &remarks,
                      const std::string &server, const std::string &port, const tribool &udp, const tribool &tfo,
                      const tribool &scv, const tribool &tls13, const std::string &underlying_proxy) {
@@ -930,11 +944,8 @@ void explodeTrojan(std::string trojan, Proxy &node) {
     if (startsWith(trojan, "trojan-go://")) {
         trojan.erase(0, 12);
     }
-    string_size pos = trojan.rfind('#');
-    if (pos != std::string::npos) {
-        remark = urlDecode(trojan.substr(pos + 1));
-        trojan.erase(pos);
-    }
+    extractRemark(trojan, remark);
+    string_size pos;
     pos = trojan.find('?');
     if (pos != std::string::npos) {
         addition = trojan.substr(pos + 1);
@@ -1659,11 +1670,7 @@ void explodeStdVMess(std::string vmess, Proxy &node) {
     vmess = vmess.substr(8);
     string_size pos;
 
-    pos = vmess.rfind('#');
-    if (pos != std::string::npos) {
-        remarks = urlDecode(vmess.substr(pos + 1));
-        vmess.erase(pos);
-    }
+    extractRemark(vmess, remarks);
     const std::string stdvmess_matcher =
             R"(^([a-z]+)(?:\+([a-z]+))?:([\da-f]{4}(?:[\da-f]{4}-){4}[\da-f]{12})-(\d+)@(.+):(\d+)(?:\/?\?(.*))?$)";
     if (regGetMatch(vmess, stdvmess_matcher, 8, 0, &net, &tls, &id, &aid, &add, &port, &addition))
@@ -1706,11 +1713,7 @@ void explodeStdHysteria(std::string hysteria, Proxy &node) {
     hysteria = hysteria.substr(11);
     string_size pos;
 
-    pos = hysteria.rfind("#");
-    if (pos != hysteria.npos) {
-        remarks = urlDecode(hysteria.substr(pos + 1));
-        hysteria.erase(pos);
-    }
+    extractRemark(hysteria, remarks);
     const std::string stdhysteria_matcher = R"(^(.*)[:](\d+)[?](.*)$)";
     if (regGetMatch(hysteria, stdhysteria_matcher, 4, 0, &add, &port, &addition))
         return;
@@ -1746,11 +1749,7 @@ void explodeStdMieru(std::string mieru, Proxy &node) {
     string_size pos;
 
     // 提取 remarks
-    pos = mieru.rfind("#");
-    if (pos != mieru.npos) {
-        remarks = urlDecode(mieru.substr(pos + 1));
-        mieru.erase(pos);
-    }
+    extractRemark(mieru, remarks);
 
     // 提取参数
     pos = mieru.rfind("?");
@@ -1789,11 +1788,7 @@ void explodeStdHysteria2(std::string hysteria2, Proxy &node) {
     hysteria2 = hysteria2.substr(12);
     string_size pos;
 
-    pos = hysteria2.rfind("#");
-    if (pos != hysteria2.npos) {
-        remarks = urlDecode(hysteria2.substr(pos + 1));
-        hysteria2.erase(pos);
-    }
+    extractRemark(hysteria2, remarks);
 
     pos = hysteria2.rfind("?");
     if (pos != hysteria2.npos) {
@@ -1840,11 +1835,7 @@ void explodeStdVless(std::string vless, Proxy &node) {
     vless = vless.substr(8);
     string_size pos;
 
-    pos = vless.rfind("#");
-    if (pos != vless.npos) {
-        remarks = urlDecode(vless.substr(pos + 1));
-        vless.erase(pos);
-    }
+    extractRemark(vless, remarks);
     const std::string stdvless_matcher =
             R"(^([\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12})@\[?([\d\-a-zA-Z:.]+)\]?:(\d+)(?:\/?\?(.*))?$)";
     if (regGetMatch(vless, stdvless_matcher, 5, 0, &id, &add, &port, &addition))
@@ -3196,11 +3187,7 @@ void explodeTuic(const std::string &tuic, Proxy &node) {
     std::string link = tuic.substr(7);
     string_size pos;
 
-    pos = link.rfind("#");
-    if (pos != std::string::npos) {
-        remarks = urlDecode(link.substr(pos + 1));
-        link.erase(pos);
-    }
+    extractRemark(link, remarks);
 
     pos = link.rfind("?");
     if (pos != std::string::npos) {
@@ -3259,11 +3246,7 @@ void explodeAnyTLS(std::string anytls, Proxy &node) {
     anytls = anytls.substr(9);
     string_size pos;
 
-    pos = anytls.rfind("#");
-    if (pos != anytls.npos) {
-        remarks = urlDecode(anytls.substr(pos + 1));
-        anytls.erase(pos);
-    }
+    extractRemark(anytls, remarks);
 
     pos = anytls.rfind("?");
     if (pos != anytls.npos) {
