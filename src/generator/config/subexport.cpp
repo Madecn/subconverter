@@ -1399,7 +1399,7 @@ std::string proxyToSingle(std::vector<Proxy> &nodes, int types, extra_settings &
                     proxyStr += "&packet-encoding=" + packet_encoding;
                 }
                 if (!alpns.empty()) {
-                    proxyStr += "&alpn=" + alpns[0];
+                    proxyStr += "&alpn=" + urlEncode(join(alpns, ","));
                 }
                 if (!sni.empty()) {
                     proxyStr += "&sni=" + sni;

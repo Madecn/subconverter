@@ -87,6 +87,25 @@ void extractRemark(std::string &link, std::string &remark) {
     }
 }
 
+std::vector<std::string> getUrlAlpnList(const std::string &addition) {
+    std::vector<std::string> result;
+    std::string alpn = urlDecode(getUrlArg(addition, "alpn"));
+    if (alpn.empty())
+        return result;
+
+    auto alpns = split(alpn, ",");
+    for (auto &item: alpns) {
+        item = trim(item);
+        if (!item.empty())
+            result.emplace_back(item);
+    }
+    return result;
+}
+
+std::string getUrlAlpn(const std::string &addition) {
+    return join(getUrlAlpnList(addition), ",");
+}
+
 void commonConstruct(Proxy &node, ProxyType type, const std::string &group, const std::string &remarks,
                      const std::string &server, const std::string &port, const tribool &udp, const tribool &tfo,
                      const tribool &scv, const tribool &tls13, const std::string &underlying_proxy) {
@@ -115,6 +134,7 @@ void vmessConstruct(Proxy &node, const std::string &group, const std::string &re
     node.TransferProtocol = net.empty() ? "tcp" : net;
     node.Edge = edge;
     node.ServerName = sni;
+    node.AlpnList = alpnList;
 
     if (net == "quic") {
         node.QUICSecure = host;
@@ -991,11 +1011,7 @@ void explodeTrojan(std::string trojan, Proxy &node) {
         remark = server + ":" + port;
     if (group.empty())
         group = TROJAN_DEFAULT_GROUP;
-    std::string alpn = getUrlArg(addition, "alpn");
-    std::vector<std::string> alpnList;
-    if (!alpn.empty()) {
-        alpnList.push_back(alpn);
-    }
+    std::vector<std::string> alpnList = getUrlAlpnList(addition);
     trojanConstruct(node, group, remark, server, port, psk, network, host, path, fp, sni, alpnList, true, tribool(),
                     tfo, scv);
 }
@@ -1697,11 +1713,7 @@ void explodeStdVMess(std::string vmess, Proxy &node) {
 
     if (remarks.empty())
         remarks = add + ":" + port;
-    std::string alpn = getUrlArg(addition, "alpn");
-    std::vector<std::string> alpnList;
-    if (!alpn.empty()) {
-        alpnList.push_back(alpn);
-    }
+    std::vector<std::string> alpnList = getUrlAlpnList(addition);
     vmessConstruct(node, V2RAY_DEFAULT_GROUP, remarks, add, port, type, id, aid, net, "auto", path, host, "", tls, "",
                    alpnList);
 }
@@ -1724,16 +1736,12 @@ void explodeStdHysteria(std::string hysteria, Proxy &node) {
     insecure = getUrlArg(addition, "insecure");
     up = getUrlArg(addition, "upmbps");
     down = getUrlArg(addition, "downmbps");
-    alpn = getUrlArg(addition, "alpn");
+    alpn = getUrlAlpn(addition);
     obfsParam = getUrlArg(addition, "obfsParam");
     sni = getUrlArg(addition, "peer");
 
     if (remarks.empty())
         remarks = add + ":" + port;
-    std::vector<std::string> alpnList;
-    if (!alpn.empty()) {
-        alpnList.push_back(alpn);
-    }
     hysteriaConstruct(node, HYSTERIA_DEFAULT_GROUP, remarks, add, port, type, auth, auth_str, host, up, down, alpn,
                       obfsParam,
                       insecure, "", sni);
@@ -1814,7 +1822,7 @@ void explodeStdHysteria2(std::string hysteria2, Proxy &node) {
     scv = getUrlArg(addition, "insecure");
     up = getUrlArg(addition, "up");
     down = getUrlArg(addition, "down");
-    alpn = getUrlArg(addition, "alpn");
+    alpn = getUrlAlpn(addition);
     obfsParam = getUrlArg(addition, "obfs");
     obfsPassword = getUrlArg(addition, "obfs-password");
     host = getUrlArg(addition, "sni");
@@ -1849,11 +1857,7 @@ void explodeStdVless(std::string vless, Proxy &node) {
     encryption = getUrlArg(addition, "encryption");
     fp = getUrlArg(addition, "fp");
     std::string packet_encoding = getUrlArg(addition, "packet-encoding");
-    std::string alpn = getUrlArg(addition, "alpn");
-    std::vector<std::string> alpnList;
-    if (!alpn.empty()) {
-        alpnList.push_back(alpn);
-    }
+    std::vector<std::string> alpnList = getUrlAlpnList(addition);
     switch (hash_(net)) {
         case "tcp"_hash:
         case "ws"_hash:
@@ -1932,11 +1936,7 @@ void explodeShadowrocket(std::string rocket, Proxy &node) {
 
     if (remarks.empty())
         remarks = add + ":" + port;
-    std::string alpn = getUrlArg(addition, "alpn");
-    std::vector<std::string> alpnList;
-    if (!alpn.empty()) {
-        alpnList.push_back(alpn);
-    }
+    std::vector<std::string> alpnList = getUrlAlpnList(addition);
     vmessConstruct(node, V2RAY_DEFAULT_GROUP, remarks, add, port, type, id, aid, net, cipher, path, host, "", tls, "",
                    alpnList);
 }
@@ -1972,11 +1972,7 @@ void explodeKitsunebi(std::string kit, Proxy &node) {
 
     if (remarks.empty())
         remarks = add + ":" + port;
-    std::string alpn = getUrlArg(addition, "alpn");
-    std::vector<std::string> alpnList;
-    if (!alpn.empty()) {
-        alpnList.push_back(alpn);
-    }
+    std::vector<std::string> alpnList = getUrlAlpnList(addition);
     vmessConstruct(node, V2RAY_DEFAULT_GROUP, remarks, add, port, type, id, aid, net, cipher, path, host, "", tls, "",
                    alpnList);
 }
@@ -3226,7 +3222,7 @@ void explodeTuic(const std::string &tuic, Proxy &node) {
         add = add.substr(1, add.length() - 2);
 
     scv = getUrlArg(addition, "insecure");
-    alpn = getUrlArg(addition, "alpn");
+    alpn = getUrlAlpn(addition);
     sni = getUrlArg(addition, "sni");
     congestion_control = getUrlArg(addition, "congestion_control");
     if (remarks.empty())
@@ -3272,14 +3268,7 @@ void explodeAnyTLS(std::string anytls, Proxy &node) {
     if (remarks.empty())
         remarks = add + ":" + port;
 
-    std::string alpn = getUrlArg(addition, "alpn");
-    if (!alpn.empty()) {
-        auto alpns = split(alpn, ",");
-        for (auto &item : alpns) {
-            if (!item.empty())
-                alpnList.emplace_back(item);
-        }
-    }
+    alpnList = getUrlAlpnList(addition);
 
     fp = getUrlArg(addition, "fp");
     if (fp.empty())
