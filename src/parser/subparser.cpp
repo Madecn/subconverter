@@ -1031,7 +1031,7 @@ void explodeQuan(const std::string &quan, Proxy &node) {
 
         //read link
         for (uint32_t i = 6; i < configs.size(); i++) {
-            vArray = split(configs[i], "=");
+            vArray = split_first(configs[i], "=");
             if (vArray.size() < 2)
                 continue;
             itemName = trim(vArray[0]);
@@ -2054,7 +2054,7 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                 password = trim(configs[4]);
 
                 for (i = 6; i < configs.size(); i++) {
-                    vArray = split(configs[i], "=");
+                    vArray = split_first(configs[i], "=");
                     if (vArray.size() < 2)
                         continue;
                     itemName = trim(vArray[0]);
@@ -2073,10 +2073,17 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                         case "tfo"_hash:
                             tfo = itemVal;
                             break;
+                        case "shadow-tls-sni"_hash:
+                        case "shadow-tls-password"_hash:
+                        case "shadow-tls-version"_hash:
+                            port = "0";
+                            break;
                         default:
                             continue;
                     }
                 }
+                if (port == "0")
+                    continue;
                 if (!plugin.empty()) {
                     pluginopts = "obfs=" + pluginopts_mode;
                     pluginopts += pluginopts_host.empty() ? "" : ";obfs-host=" + pluginopts_host;
@@ -2095,7 +2102,7 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                     continue;
 
                 for (i = 3; i < configs.size(); i++) {
-                    vArray = split(configs[i], "=");
+                    vArray = split_first(configs[i], "=");
                     if (vArray.size() < 2)
                         continue;
                     itemName = trim(vArray[0]);
@@ -2120,10 +2127,17 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                         case "tfo"_hash:
                             tfo = itemVal;
                             break;
+                        case "shadow-tls-sni"_hash:
+                        case "shadow-tls-password"_hash:
+                        case "shadow-tls-version"_hash:
+                            port = "0";
+                            break;
                         default:
                             continue;
                     }
                 }
+                if (port == "0")
+                    continue;
                 if (!plugin.empty()) {
                     pluginopts = "obfs=" + pluginopts_mode;
                     pluginopts += pluginopts_host.empty() ? "" : ";obfs-host=" + pluginopts_host;
@@ -2142,7 +2156,7 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                     password = trim(configs[4]);
                 }
                 for (i = 5; i < configs.size(); i++) {
-                    vArray = split(configs[i], "=");
+                    vArray = split_first(configs[i], "=");
                     if (vArray.size() < 2)
                         continue;
                     itemName = trim(vArray[0]);
@@ -2172,7 +2186,7 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                 method = "auto";
 
                 for (i = 3; i < configs.size(); i++) {
-                    vArray = split(configs[i], "=");
+                    vArray = split_first(configs[i], "=");
                     if (vArray.size() != 2)
                         continue;
                     itemName = trim(vArray[0]);
@@ -2233,7 +2247,7 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                 if (port == "0")
                     continue;
                 for (i = 3; i < configs.size(); i++) {
-                    vArray = split(configs[i], "=");
+                    vArray = split_first(configs[i], "=");
                     if (vArray.size() < 2)
                         continue;
                     itemName = trim(vArray[0]);
@@ -2261,7 +2275,7 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                     continue;
 
                 for (i = 3; i < configs.size(); i++) {
-                    vArray = split(configs[i], "=");
+                    vArray = split_first(configs[i], "=");
                     if (vArray.size() != 2)
                         continue;
                     itemName = trim(vArray[0]);
@@ -2304,7 +2318,7 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                     continue;
 
                 for (i = 3; i < configs.size(); i++) {
-                    vArray = split(configs[i], "=");
+                    vArray = split_first(configs[i], "=");
                     if (vArray.size() != 2)
                         continue;
                     itemName = trim(vArray[0]);
@@ -2341,7 +2355,7 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                 break;
             case "wireguard"_hash:
                 for (i = 1; i < configs.size(); i++) {
-                    vArray = split(trim(configs[i]), "=");
+                    vArray = split_first(trim(configs[i]), "=");
                     if (vArray.size() != 2)
                         continue;
                     itemName = trim(vArray[0]);
@@ -2395,6 +2409,43 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                                    mtu, keepalive, test_url, "", udp, "");
                 parsePeers(node, peer);
                 break;
+            case "anytls"_hash: //Surge style anytls proxy
+                server = trim(configs[1]);
+                port = trim(configs[2]);
+                if (port == "0")
+                    continue;
+
+                for (i = 3; i < configs.size(); i++) {
+                    vArray = split_first(configs[i], "=");
+                    if (vArray.size() != 2)
+                        continue;
+                    itemName = trim(vArray[0]);
+                    itemVal = trim(vArray[1]);
+                    switch (hash_(itemName)) {
+                        case "password"_hash:
+                            password = itemVal;
+                            break;
+                        case "sni"_hash:
+                            sni = itemVal;
+                            break;
+                        case "skip-cert-verify"_hash:
+                            scv = itemVal;
+                            break;
+                        case "fingerprint"_hash:
+                            fp = itemVal;
+                            break;
+                        case "tls13"_hash:
+                            tls13 = itemVal;
+                            break;
+                        default:
+                            continue;
+                    }
+                }
+
+                anyTlSConstruct(node, ANYTLS_DEFAULT_GROUP, remarks, port, password, server,
+                                std::vector<std::string>{}, fp, sni,
+                                udp, tribool(), scv, tribool(), "", 30, 30, 0);
+                break;
             default:
                 switch (hash_(remarks)) {
                     case "shadowsocks"_hash: //quantumult x style ss/ssr link
@@ -2404,7 +2455,7 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                             continue;
 
                         for (i = 1; i < configs.size(); i++) {
-                            vArray = split(trim(configs[i]), "=");
+                            vArray = split_first(trim(configs[i]), "=");
                             if (vArray.size() != 2)
                                 continue;
                             itemName = trim(vArray[0]);
@@ -2499,7 +2550,7 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                         net = "tcp";
 
                         for (i = 1; i < configs.size(); i++) {
-                            vArray = split(trim(configs[i]), "=");
+                            vArray = split_first(trim(configs[i]), "=");
                             if (vArray.size() != 2)
                                 continue;
                             itemName = trim(vArray[0]);
@@ -2566,7 +2617,7 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                         net = "tcp";
 
                         for (i = 1; i < configs.size(); i++) {
-                            vArray = split(trim(configs[i]), "=");
+                            vArray = split_first(trim(configs[i]), "=");
                             if (vArray.size() != 2)
                                 continue;
                             itemName = trim(vArray[0]);
@@ -2632,7 +2683,7 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                             continue;
 
                         for (i = 1; i < configs.size(); i++) {
-                            vArray = split(trim(configs[i]), "=");
+                            vArray = split_first(trim(configs[i]), "=");
                             if (vArray.size() != 2)
                                 continue;
                             itemName = trim(vArray[0]);
@@ -2684,7 +2735,7 @@ bool explodeSurge(std::string surge, std::vector<Proxy> &nodes) {
                             continue;
 
                         for (i = 1; i < configs.size(); i++) {
-                            vArray = split(trim(configs[i]), "=");
+                            vArray = split_first(trim(configs[i]), "=");
                             if (vArray.size() != 2)
                                 continue;
                             itemName = trim(vArray[0]);
