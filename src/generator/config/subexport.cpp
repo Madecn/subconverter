@@ -890,7 +890,7 @@ std::string proxyToClash(std::vector<Proxy> &nodes, const std::string &base_conf
     proxyToClash(nodes, yamlnode, extra_proxy_group, clashR, ext);
 
     if (ext.nodelist)
-        return YAML::Dump(yamlnode);
+        return formatterShortId(YAML::Dump(yamlnode));
 
     /*
     if(ext.enable_rule_generator)
@@ -899,7 +899,7 @@ std::string proxyToClash(std::vector<Proxy> &nodes, const std::string &base_conf
     return YAML::Dump(yamlnode);
     */
     if (!ext.enable_rule_generator)
-        return YAML::Dump(yamlnode);
+        return formatterShortId(YAML::Dump(yamlnode));
 
     if (!ext.managed_config_prefix.empty() || ext.clash_script) {
         if (yamlnode["mode"].IsDefined()) {
@@ -911,7 +911,7 @@ std::string proxyToClash(std::vector<Proxy> &nodes, const std::string &base_conf
 
         renderClashScript(yamlnode, ruleset_content_array, ext.managed_config_prefix, ext.clash_script,
                           ext.overwrite_original_rules, ext.clash_classical_ruleset);
-        return YAML::Dump(yamlnode);
+        return formatterShortId(YAML::Dump(yamlnode));
     }
 
     std::string output_content = rulesetToClashStr(yamlnode, ruleset_content_array, ext.overwrite_original_rules,
