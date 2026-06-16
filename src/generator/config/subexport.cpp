@@ -487,8 +487,6 @@ proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode, const ProxyGroupCo
                 }
                 break;
             case ProxyType::Snell:
-                if (x.SnellVersion >= 4)
-                    continue;
                 singleproxy["type"] = "snell";
                 singleproxy["psk"] = x.Password;
                 if (x.SnellVersion != 0)
@@ -742,9 +740,8 @@ proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode, const ProxyGroupCo
                 continue;
         }
 
-        // UDP is not supported yet in clash using snell
-        // sees in https://dreamacro.github.io/clash/configuration/outbound.html#snell
-        if (udp && x.Type != ProxyType::Snell && x.Type != ProxyType::TUIC)
+        // Snell UDP is available in mihomo-compatible Snell v3+ nodes.
+        if (udp && (x.Type != ProxyType::Snell || x.SnellVersion >= 3) && x.Type != ProxyType::TUIC)
             singleproxy["udp"] = true;
         if (!clashR && !x.UnderlyingProxy.empty())
             singleproxy["dialer-proxy"] = x.UnderlyingProxy;
